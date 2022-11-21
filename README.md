@@ -18,4 +18,6 @@ const layer = L.labeler(geojson_data, {
 - `labelPos` <string>: [l|r|auto] label position
 - `priorityProp` <string>: priority property. Higher priority labels are drawn first.
 
+## live demo
+https://samanbey.github.io/leaflet-labeler/example.html
 
