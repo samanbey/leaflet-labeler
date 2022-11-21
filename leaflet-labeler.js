@@ -69,23 +69,11 @@ L.Labeler = L.GeoJSON.extend({
             let ls = lab.span;
             //console.log(lab.latLng, e.zoom, e.center);
             let pos = this._map._latLngToNewLayerPoint(lab.latLng, e.zoom, e.center);
-            this._addOffset(pos, this.options.labelPos, this.options.gap, lab);
+            this._addOffset(pos, lab.pos, this.options.gap, lab);
             ls.style.top = `${pos.y}px`;
             ls.style.left = `${pos.x}px`;            
         }
     },
-    
-    /*_move(e) {
-        for (let l in this._labels) {
-            let lab = this._labels[l];
-            let ls = lab.span;
-            //console.log(lab.latLng, e.zoom, e.center);
-            let pos = this._map._latLngToLayerPoint(lab.latLng);
-            this._addOffset(pos, this.options.labelPos, this.options.gap, lab);
-            ls.style.top = `${pos.y}px`;
-            ls.style.left = `${pos.x}px`;            
-        }
-    },*/
     
     _intersects(bb1,bb2) {
         // checks if two bounding boxes intersect
