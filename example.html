@@ -41,7 +41,7 @@
                 // new layer stored in global variable to make debugging easier
                 window.ll = L.labeler(d, {
                     pointToLayer: (gj, ll) => L.circleMarker(ll, {
-                        radius:gj.properties.population?Math.log(gj.properties.population):1
+                        radius:gj.properties.population?Math.pow(gj.properties.population,.2)-1:1
                     }), 
                     labelProp: 'name', 
                     labelPos: 'auto', 

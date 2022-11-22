@@ -11,7 +11,7 @@
 L.Labeler = L.GeoJSON.extend({
     options: {
         labelProp: 'name',
-        labelPos: 'r',
+        labelPos: 'auto',
         gap: 2,
         pane: 'tooltipPane'
     },
@@ -197,7 +197,12 @@ L.Labeler = L.GeoJSON.extend({
         if (this._labels.hasOwnProperty(layer._leaflet_id))
             delete this._labels[layer._leaflet_id];
         L.GeoJSON.prototype.removeLayer.call(this, layer);
-    }
+    },
+    
+    onRemove(map) {
+		this.eachLayer(map.removeLayer, map);
+        this._container.remove();
+	}
 });
 
 L.labeler = function (layers, options) {
