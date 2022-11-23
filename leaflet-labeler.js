@@ -13,7 +13,8 @@ L.Labeler = L.GeoJSON.extend({
         labelProp: 'name',
         labelPos: 'auto',
         gap: 2,
-        pane: 'tooltipPane'
+        pane: 'tooltipPane',
+        viewFilter: null
     },
     
     _labels: {},
@@ -27,6 +28,7 @@ L.Labeler = L.GeoJSON.extend({
         L.GeoJSON.prototype.onAdd.call(this, map);
         // create label priority list
         this._priOrder=[];
+        this._viewFilter=this.options.viewFilter;
         for (let l in this._labels) {
             let lab=this._labels[l]
             this._priOrder.push({ id: l, p: lab.priority });
@@ -67,25 +69,20 @@ L.Labeler = L.GeoJSON.extend({
         for (let l in this._labels) {
             let lab = this._labels[l];
             let ls = lab.span;
-            //console.log(lab.latLng, e.zoom, e.center);
-            let pos = this._map._latLngToNewLayerPoint(lab.latLng, e.zoom, e.center);
-            this._addOffset(pos, lab.pos, this.options.gap, lab);
-            ls.style.top = `${pos.y}px`;
-            ls.style.left = `${pos.x}px`;            
+            if (ls) {
+                let pos = this._map._latLngToNewLayerPoint(lab.latLng, e.zoom, e.center);
+                this._addOffset(pos, lab.pos, this.options.gap, lab);
+                ls.style.top = `${pos.y}px`;
+                ls.style.left = `${pos.x}px`; 
+            }
         }
     },
     
     _intersects(bb1,bb2) {
         // checks if two bounding boxes intersect
-        if (bb1.x1>=bb2.x1&&bb1.x1<=bb2.x2&&bb1.y1>=bb2.y1&&bb1.y1<=bb2.y2) return true;
-        if (bb1.x2>=bb2.x1&&bb1.x2<=bb2.x2&&bb1.y1>=bb2.y1&&bb1.y1<=bb2.y2) return true;
-        if (bb1.x1>=bb2.x1&&bb1.x1<=bb2.x2&&bb1.y2>=bb2.y1&&bb1.y2<=bb2.y2) return true;
-        if (bb1.x2>=bb2.x1&&bb1.x2<=bb2.x2&&bb1.y2>=bb2.y1&&bb1.y2<=bb2.y2) return true;
-        if (bb2.x1>=bb1.x1&&bb2.x1<=bb1.x2&&bb2.y1>=bb1.y1&&bb2.y1<=bb1.y2) return true;
-        if (bb2.x2>=bb1.x1&&bb2.x2<=bb1.x2&&bb2.y1>=bb1.y1&&bb2.y1<=bb1.y2) return true;
-        if (bb2.x1>=bb1.x1&&bb2.x1<=bb1.x2&&bb2.y2>=bb1.y1&&bb2.y2<=bb1.y2) return true;
-        if (bb2.x2>=bb1.x1&&bb2.x2<=bb1.x2&&bb2.y2>=bb1.y1&&bb2.y2<=bb1.y2) return true;        
-        return false;
+        let b1=L.bounds([[bb1.x1,bb1.y1],[bb1.x2,bb1.y2]]), 
+            b2=L.bounds([[bb2.x1,bb2.y1],[bb2.x2,bb2.y2]]);
+        return b1.intersects(b2);
     },
     
     addData(geojson) {
@@ -107,6 +104,12 @@ L.Labeler = L.GeoJSON.extend({
         for (let i=0;i<this._priOrder.length;i++) {
             let l=this._priOrder[i].id;
             let lab = this._labels[l];
+            // use viewFilter if there is one
+            if (this._viewFilter)
+                if (!this._viewFilter(lab.layer.feature)) {
+                    lab.layer.remove();
+                    continue;
+                }
             let pos = this._map.latLngToLayerPoint(lab.latLng);
             let markerbb={ x1: pos.x-lab.anchor[0], y1: pos.y-lab.anchor[1], x2: pos.x-lab.anchor[0]+lab.size[0], y2: pos.y-lab.anchor[1]+lab.size[1] }
             let fits=true;
@@ -164,6 +167,10 @@ L.Labeler = L.GeoJSON.extend({
         console.log('number of labels: '+this._bbs.length/2);
     },
     
+    update() {
+        this._update();
+    },
+    
     addLayer(layer) {
         if (this.hasLayer(layer)) {
             return this;
@@ -202,7 +209,12 @@ L.Labeler = L.GeoJSON.extend({
     onRemove(map) {
 		this.eachLayer(map.removeLayer, map);
         this._container.remove();
-	}
+	},
+    
+    setViewFilter(f) {
+        this._viewFilter=f;
+        this._update();
+    }
 });
 
 L.labeler = function (layers, options) {

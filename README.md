@@ -6,18 +6,23 @@ Only displays points whose labels fit into the current view.
 ``` javascript
 // factory
 const layer = L.labeler(geojson_data, {
-                    labelProp: 'name', 
-                    labelPos: 'auto', 
-                    priorityProp: 'population'
-                }).addTo(map);
+    labelProp: 'name', 
+    labelPos: 'auto', 
+    priorityProp: 'population'
+}).addTo(map);
 ```
 
-## options (in addition to the standard `L.geoJSON` options)
-- `labelProp <string>`: property used for labeling
-- `labelPos <string>`: ['l'|'r'|'auto'] label position (default: 'auto')
-- `priorityProp <string>`: priority property. Higher priority labels are drawn first.
-- `gap <number>`: gap between the marker and the label, in pixels (default: 2)
-- `pane <string>`: which Leaflet map pane to put labels onto. (default: 'tooltipPane')
+## creation options (in addition to the standard `L.geoJSON` options)
+- `<string> labelProp`: property used for labeling
+- `<string> labelPos`: ['l'|'r'|'auto'] label position (default: 'auto')
+- `<string> priorityProp`: priority property. Higher priority labels are drawn first.
+- `<number> gap`: gap between the marker and the label, in pixels (default: 2)
+- `<string> pane`: which Leaflet map pane to put labels onto. (default: 'tooltipPane')
+- `<function> viewFilter`: optional function to filter features. Similar to L.geoJSON's `filter` option but filters not on layer creation but on update.
+
+## other methods
+- `update()`: updates view
+- `setViewFilter(<function> f): sets `viewFilter` funtion and updates map.
 
 ## live demo
 https://samanbey.github.io/leaflet-labeler/example.html
