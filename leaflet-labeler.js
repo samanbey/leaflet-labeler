@@ -12,6 +12,7 @@ L.Labeler = L.GeoJSON.extend({
     options: {
         labelProp: 'name',
         labelPos: 'auto',
+        labelFunc: null,
         gap: 2,
         pane: 'tooltipPane',
         viewFilter: null
@@ -179,14 +180,9 @@ L.Labeler = L.GeoJSON.extend({
 
 		this._layers[id] = layer;
 
-        // sublayers are no longer automatically added to map; only if they fit.
-		/*if (this._map) {
-			this._map.addLayer(layer);
-		}*/
-
 		layer.addEventParent(this);
         
-        let label = layer.feature.properties[this.options.labelProp],
+        let label = this.options.labelFunc?this.options.labelFunc(layer):layer.feature.properties[this.options.labelProp],
             layerId = layer._leaflet_id;
         // get icon size, anchor
         let anchor = layer.getIcon?layer.getIcon().options.iconAnchor:[layer.getRadius(),layer.getRadius()],
@@ -195,7 +191,6 @@ L.Labeler = L.GeoJSON.extend({
         if (!pri) pri=0;
         // push label info to _labels array
         this._labels[layerId] = { label: label, latLng: layer.getLatLng(), anchor: anchor, size: size, layer: layer, priority: pri };
-        //console.log(this._labels[layerId]);
         
 		return this.fire('layeradd', {layer});
     },
