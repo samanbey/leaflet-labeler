@@ -26,6 +26,6 @@ const layer = L.labeler(geojson_data, {
 - `setViewFilter(<function>): sets `viewFilter` function and updates map.
 
 ## live demo
-https://samanbey.github.io/leaflet-labeler/example.html
-https://samanbey.github.io/leaflet-labeler/example_poly.html
+- https://samanbey.github.io/leaflet-labeler/example.html
+- https://samanbey.github.io/leaflet-labeler/example_poly.html
 
