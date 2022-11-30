@@ -15,7 +15,8 @@ L.Labeler = L.GeoJSON.extend({
         labelFunc: null,
         gap: 2,
         labelPane: 'tooltipPane',
-        viewFilter: null
+        viewFilter: null,
+        labelStyle: {}
     },
     
     _labels: {},
@@ -101,7 +102,7 @@ L.Labeler = L.GeoJSON.extend({
         this._bbs=[]; // array of bounding boxes.
         let bb;
         L.DomUtil.toFront(this._container);
-        let maptr=map._panes.mapPane.style.transform.substring(12).split(', ');
+        let maptr=this._map._panes.mapPane.style.transform.substring(12).split(', ');
         let mapx1=-parseFloat(maptr[0]), mapy1=-parseFloat(maptr[1]);
         let mapx2=mapx1+this._map._container.clientWidth,
             mapy2=mapy1+this._map._container.clientHeight;
@@ -127,9 +128,14 @@ L.Labeler = L.GeoJSON.extend({
                     }
                 });
             let ls = L.DomUtil.create('span', 'leaflet-labeler-label', this._container);
+            // set custom label style
+            let st = (typeof this.options.labelStyle == 'function') ? this.options.labelStyle(lab.layer.feature) : this.options.labelStyle;
+            for (let r in st)
+                ls.style[r] = st[r];
             ls.style.visibility='hidden'; // initially hidden, in case it cannot be displayed
             lab.span = ls;
-            ls.textContent = lab.label;  
+            //ls.textContent = lab.label;
+            ls.innerHTML = lab.label;
             if (fits) {
                 for (let posi in this._posOrder) {
                     fits=true;
@@ -200,10 +206,12 @@ L.Labeler = L.GeoJSON.extend({
             anchor = layer.getIcon?layer.getIcon().options.iconAnchor:[layer.getRadius(),layer.getRadius()];
             size = layer.getIcon?layer.getIcon().options.iconSize:[layer.getRadius()*2,layer.getRadius()*2];
         }
-        let pri = this.options.priorityProp?layer.feature.properties[this.options.priorityProp]-0:0;
+        let pri = this.options.priorityFunc?this.options.priorityFunc(layer.feature):this.options.priorityProp?layer.feature.properties[this.options.priorityProp]-0:0;
         if (!pri) pri = 0;
         // push label info to _labels array
-        let latLng = layer.getLatLng?layer.getLatLng():layer.getBounds().getCenter();
+        let latLng = layer.getLatLng ? layer.getLatLng() :
+                geomType.endsWith('Polygon') ? L.PolyUtil.polygonCenter(layer._defaultShape(), L.CRS.EPSG3857)
+                                             : L.LineUtil.polylineCenter(layer._defaultShape(), L.CRS.EPSG3857);
         this._labels[layerId] = { label: label, latLng: latLng, anchor: anchor, size: size, layer: layer, priority: pri, geomType: geomType };
         
 		return this.fire('layeradd', {layer});

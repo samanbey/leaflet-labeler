@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
     <head>
-        <title>Labels in Leaflet?</title>
+        <title>Labels in Leaflet? - Points</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"></script>
         <link rel="stylesheet" href="leaflet-labeler.css" />
         <script src="leaflet-labeler.js"></script>
         <style>
@@ -92,8 +92,8 @@
         <div id="controlpanel">
             Population range:
             <div id="sliders">
-                <input type="range" id="popslidermin" min="0" max="2000000" oninput="setPop(this.value-0, null)" />
-                <input type="range" id="popslidermax" min="0" max="2000000" oninput="setPop(null, this.value-0)" />
+                <input type="range" id="popslidermin" min="0" max="2000000" onchange="setPop(this.value-0, null)" />
+                <input type="range" id="popslidermax" min="0" max="2000000" onchange="setPop(null, this.value-0)" />
             </div>
             <span id="popvalue"></span>
         </div>
@@ -168,6 +168,8 @@
                     labelProp: 'name', 
                     labelFunc: l=>(`${l.feature.properties.name} (${l.feature.properties.population})`),
                     labelPos: 'auto', 
+                    labelStyle: f=>(f.properties.place=='city'?{ textTransform: 'uppercase', fontWeight:'bold' }:{}),
+                    style: f=>({ color: '#000', weight: f.properties.place=='city'?3:1 }),
                     priorityProp: 'population',
                     viewFilter: f=>(f.properties.population-0<=maxPop&&f.properties.population-0>=minPop),
                 }).addTo(map).bindPopup(l => props(l.feature.properties));
