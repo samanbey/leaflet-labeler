@@ -14,17 +14,18 @@ const layer = L.labeler(geojson_data, {
 
 ## creation options (in addition to the standard `L.geoJSON` options)
 - `<string> labelProp`: property used for labeling. Not used if `labelFunc` is set.
-- `<string> labelPos`: ['l'|'r'|'auto'] label position (default: 'auto')
+- `<string> labelPos`: ['l'|'r'|'auto'|'cc'] label position (default: 'auto' which means trying both 'l' and 'r')
 - `<string> priorityProp`: priority property. Higher priority labels are drawn first.
 - `<number> gap`: gap between the marker and the label, in pixels (default: 2)
-- `<string> pane`: which Leaflet map pane to put labels onto. (default: 'tooltipPane')
+- `<string> labelPane`: which Leaflet map pane to put labels onto. (default: 'tooltipPane')
 - `<function> viewFilter`: optional function to filter features. Similar to L.geoJSON's `filter` option but filters not on layer creation but on update.
-- `<function> labelFunc`: `function(<l.Layer>)` returning the label text (similar to functions used by `bindPopup()`)
+- `<function> labelFunc`: optional `function(<L.Layer>)` returning the label text (similar to functions used by `bindPopup()`)
 
 ## other methods
 - `update()`: updates view
-- `setViewFilter(<function> f): sets `viewFilter` funtion and updates map.
+- `setViewFilter(<function>): sets `viewFilter` function and updates map.
 
 ## live demo
 https://samanbey.github.io/leaflet-labeler/example.html
+https://samanbey.github.io/leaflet-labeler/example_poly.html
 

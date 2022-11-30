@@ -16,11 +16,133 @@
                 width: 100%;
                 height: 100%;
             }
+            #controlpanel {
+                z-index: 10000;
+                position: absolute;
+                bottom: 0; left: 0;
+                background: #fff;
+                padding: 10px;
+                text-align: center;
+            }
+            #sliders {
+                position: relative;
+                width: 300px;
+                height: 25px;
+            }
+            input[type=range] {
+                -webkit-appearance: none; 
+                appearance: none;
+                height: 2px;
+                width: 100%;
+                position: absolute;
+                top: 10px; left: 0;
+                background-color: #ccc;
+                pointer-events: none;                
+            }
+            input[type=range]:focus {
+                outline: none;
+            }
+            input[type=range]::-moz-range-thumb {
+                pointer-events: all;
+                -webkit-appearance: none;
+                appearance: none;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border-width: 3px;
+                border-color: #ccc rgba(0,0,0,0) #ccc rgba(0,0,0,0);
+                background-color: rgba(0,0,0,0);
+                cursor: pointer;
+            }
+            
+            input[type=range]::-webkit-slider-thumb {
+                pointer-events: all;
+                -webkit-appearance: none;
+                appearance: none;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: solid 3px #fff;
+                border-color: #ccc rgba(0,0,0,0) #ccc rgba(0,0,0,0);
+                background-color: rgba(0,0,0,0);
+                /*box-shadow: 0 0 0 1px #ccc;*/
+                cursor: pointer;
+            }            
+            #popslidermin::-webkit-slider-thumb {
+                border-left-color: green;
+            }
+            #popslidermin::-moz-range-thumb {
+                border-left-color: green;
+            }
+            #popslidermax::-webkit-slider-thumb {
+                border-right-color: red;
+            }
+            #popslidermax::-moz-range-thumb {
+                border-right-color: red;
+            }
+            #popslidermax {
+                height: 0;
+                z-index: 10001;                
+                transform: translateY(1px);               
+            }
         </style>
     </head>
     <body>
         <div id="map_div"></div>
+        <div id="controlpanel">
+            Population range:
+            <div id="sliders">
+                <input type="range" id="popslidermin" min="0" max="2000000" oninput="setPop(this.value-0, null)" />
+                <input type="range" id="popslidermax" min="0" max="2000000" oninput="setPop(null, this.value-0)" />
+            </div>
+            <span id="popvalue"></span>
+        </div>
         <script>
+            const ps1 = document.querySelector('#popslidermin'),
+                  ps2 = document.querySelector('#popslidermax'),
+                  pv = document.querySelector('#popvalue');
+                  psmax = ps1.getAttribute('max')-0,
+                  pscorr = psmax/Math.pow(psmax,1/3);
+            
+            var minPop = 10, maxPop = 2000000;
+            setSlider(minPop, maxPop);
+            
+            function setSlider(minP, maxP) {
+                minPop = minP;
+                maxPop = maxP;
+                // create cubic charactersitics to slider
+                let minPlog = Math.pow(minP,1/3)*pscorr;
+                let maxPlog = Math.pow(maxP,1/3)*pscorr;
+                ps1.value = minPlog;
+                ps2.value = maxPlog;
+                pv.textContent=`${minPop} – ${maxPop}`;
+            }
+            
+            // event handler for population sliders
+            function setPop(minP, maxP) {
+                if (minP) {
+                    let p=Math.round(Math.pow(minP/pscorr,3));
+                    minPop=p;
+                    if (p>maxPop) {
+                        ps2.value=maxP;
+                        maxPop=p;
+                    }
+                }
+                if (maxP) {
+                    let p=Math.round(Math.pow(maxP/pscorr,3));
+                    maxPop=p;
+                    if (p<minPop) {
+                        ps1.value=minP;
+                        minPop=p;
+                    }
+                }
+                document.querySelector('#popvalue').textContent=`${minPop} – ${maxPop}`;
+                ll.update();
+            }
+            /*document.querySelector('#popslidermin').value=minPop;
+            document.querySelector('#popslidermax').value=maxPop;
+            document.querySelector('#popvalue').textContent=`${minPop} – ${maxPop}`;*/
+            
             // list object properties in html format
             let props = o => {
                 let s = '';
@@ -44,8 +166,10 @@
                         radius:gj.properties.population?Math.pow(gj.properties.population,.2)-1:1
                     }), 
                     labelProp: 'name', 
+                    labelFunc: l=>(`${l.feature.properties.name} (${l.feature.properties.population})`),
                     labelPos: 'auto', 
-                    priorityProp: 'population'
+                    priorityProp: 'population',
+                    viewFilter: f=>(f.properties.population-0<=maxPop&&f.properties.population-0>=minPop),
                 }).addTo(map).bindPopup(l => props(l.feature.properties));
             });
         </script>

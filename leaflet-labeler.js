@@ -14,7 +14,7 @@ L.Labeler = L.GeoJSON.extend({
         labelPos: 'auto',
         labelFunc: null,
         gap: 2,
-        pane: 'tooltipPane',
+        labelPane: 'tooltipPane',
         viewFilter: null
     },
     
@@ -36,7 +36,7 @@ L.Labeler = L.GeoJSON.extend({
         }
         this._priOrder.sort((a,b)=>(b.p-a.p));
         //console.log(this._priOrder);
-        this._container = L.DomUtil.create('div', '', map.getPane(this.options.pane));
+        this._container = L.DomUtil.create('div', '', map.getPane(this.options.labelPane));
         this._update();
     },
     
@@ -62,6 +62,10 @@ L.Labeler = L.GeoJSON.extend({
             case 'l':
                 pos.x-=label.anchor[0]+gap+ls.clientWidth;
                 pos.y+=label.size[1]/2-label.anchor[1]-ls.clientHeight/2;
+                break;
+            case 'cc':
+                pos.x-=label.anchor[0]+ls.clientWidth/2;
+                pos.y-=label.anchor[1]+ls.clientHeight/2;
                 break;
         }
     },
@@ -114,12 +118,14 @@ L.Labeler = L.GeoJSON.extend({
             let pos = this._map.latLngToLayerPoint(lab.latLng);
             let markerbb={ x1: pos.x-lab.anchor[0], y1: pos.y-lab.anchor[1], x2: pos.x-lab.anchor[0]+lab.size[0], y2: pos.y-lab.anchor[1]+lab.size[1] }
             let fits=true;
-            this._bbs.some(b => {
-                if (this._intersects(b,markerbb)) {                        
-                    fits=false;
-                    return true;
-                }
-            });
+            // check icon placing conflict for point features with markers
+            if (lab.size[0]>0&&lab.size[1]>0) 
+                this._bbs.some(b => {
+                    if (this._intersects(b,markerbb)) {                        
+                        fits=false;
+                        return true;
+                    }
+                });
             let ls = L.DomUtil.create('span', 'leaflet-labeler-label', this._container);
             ls.style.visibility='hidden'; // initially hidden, in case it cannot be displayed
             lab.span = ls;
@@ -155,11 +161,13 @@ L.Labeler = L.GeoJSON.extend({
                 this._bbs.push(markerbb);
                 lab.span.style.top = `${pos.y}px`;
                 lab.span.style.left = `${pos.x}px`; 
-                lab.layer.addTo(map);
+                if (!lab.layer._map)
+                    lab.layer.addTo(map);
             }
             else {
                 this._container.removeChild(lab.span);
-                lab.layer.remove();
+                if (lab.geomType=='Point')
+                    lab.layer.remove();
             }
         }
         this._container.childNodes.forEach(n=>n.style.visibility=''); // set all remaining label visible
@@ -185,12 +193,18 @@ L.Labeler = L.GeoJSON.extend({
         let label = this.options.labelFunc?this.options.labelFunc(layer):layer.feature.properties[this.options.labelProp],
             layerId = layer._leaflet_id;
         // get icon size, anchor
-        let anchor = layer.getIcon?layer.getIcon().options.iconAnchor:[layer.getRadius(),layer.getRadius()],
+        let anchor = [0,0], size = [0,0];
+        let geomType = layer.feature.geometry.type;
+        // for points with an icon or a circle, get symbol size and anchor point
+        if (geomType == 'Point') {
+            anchor = layer.getIcon?layer.getIcon().options.iconAnchor:[layer.getRadius(),layer.getRadius()];
             size = layer.getIcon?layer.getIcon().options.iconSize:[layer.getRadius()*2,layer.getRadius()*2];
+        }
         let pri = this.options.priorityProp?layer.feature.properties[this.options.priorityProp]-0:0;
-        if (!pri) pri=0;
+        if (!pri) pri = 0;
         // push label info to _labels array
-        this._labels[layerId] = { label: label, latLng: layer.getLatLng(), anchor: anchor, size: size, layer: layer, priority: pri };
+        let latLng = layer.getLatLng?layer.getLatLng():layer.getBounds().getCenter();
+        this._labels[layerId] = { label: label, latLng: latLng, anchor: anchor, size: size, layer: layer, priority: pri, geomType: geomType };
         
 		return this.fire('layeradd', {layer});
     },
