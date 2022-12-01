@@ -2,7 +2,13 @@
 Extends L.GeoJSON with automatic labeling. 
 Filters labels to avoid conflicts. Only displays point symbols that fit with their labels into the current view without conflict.
 
-Minimum Leaflet version: 1.9.3
+Tested with Leaflet version: 1.9.3
+
+Include `leaflet-labeler.css` and `leaflet-labeler.js` in your code. They are also available through GitHub Pages:
+``` html
+<link rel="stylesheet" href="https://samanbey.github.io/leaflet-labeler/leaflet-labeler.css" />
+<script src="https://samanbey.github.io/leaflet-labeler/leaflet-labeler.js"></script>
+```
 
 ## API
 ``` javascript
@@ -27,7 +33,7 @@ const layer = L.labeler(geojson_data, {
 
 ## other methods
 - `update()`: updates view
-- `setViewFilter(<function>): sets `viewFilter` function and updates map.
+- `setViewFilter(<function>)`: sets `viewFilter` function and updates map.
 
 ## live demo
 - points: https://samanbey.github.io/leaflet-labeler/example.html
