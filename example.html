@@ -139,9 +139,9 @@
                 document.querySelector('#popvalue').textContent=`${minPop} – ${maxPop}`;
                 ll.update();
             }
-            /*document.querySelector('#popslidermin').value=minPop;
+            document.querySelector('#popslidermin').value=minPop;
             document.querySelector('#popslidermax').value=maxPop;
-            document.querySelector('#popvalue').textContent=`${minPop} – ${maxPop}`;*/
+            document.querySelector('#popvalue').textContent=`${minPop} – ${maxPop}`;
             
             // list object properties in html format
             let props = o => {
@@ -154,10 +154,10 @@
             const map = L.map('map_div').fitBounds([[45.5, 16], [48.5, 23]]);
             
             // add OSM tile layer
-			const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  }).addTo(map);
-			
+            const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
             // fetch geojson data and create a layer with labels
             fetch('hu_settl.geojson').then(r => r.json()).then(d => {
                 // new layer stored in global variable to make debugging easier

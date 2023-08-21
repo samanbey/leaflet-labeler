@@ -16,7 +16,8 @@ L.Labeler = L.GeoJSON.extend({
         gap: 2,
         labelPane: 'tooltipPane',
         viewFilter: null,
-        labelStyle: {}
+        labelStyle: {},
+        changingMarker: false
     },
     
     _labels: {},
@@ -106,19 +107,33 @@ L.Labeler = L.GeoJSON.extend({
         let mapx1=-parseFloat(maptr[0]), mapy1=-parseFloat(maptr[1]);
         let mapx2=mapx1+this._map._container.clientWidth,
             mapy2=mapy1+this._map._container.clientHeight;
-        /*for (let l in this._labels) {*/
+        
         for (let i=0;i<this._priOrder.length;i++) {
             let l=this._priOrder[i].id;
             let lab = this._labels[l];
             // use viewFilter if there is one
             if (this._viewFilter)
-                if (!this._viewFilter(lab.layer.feature)) {
+                if (lab.layer&&!this._viewFilter(lab.layer.feature)) {
                     lab.layer.remove();
                     continue;
                 }
+            // if `changingMarker` is true, markers may change after loading the layer, so they should be recreated on update
+            if (this.options.changingMarker&&this.options.pointToLayer) {
+                let nl = this.options.pointToLayer(lab.layer.feature, lab.latLng);
+                nl.feature = lab.layer.feature;
+                if (lab.layer._map) {
+                    lab.layer.remove();
+                    nl.addTo(map);
+                    delete lab.layer;
+                }
+                lab.layer = nl;
+                lab.anchor = lab.layer.getIcon?lab.layer.getIcon().options.iconAnchor:[lab.layer.getRadius(),lab.layer.getRadius()];
+                lab.size = lab.layer.getIcon?lab.layer.getIcon().options.iconSize:[lab.layer.getRadius()*2,lab.layer.getRadius()*2];
+            }
+            
             let pos = this._map.latLngToLayerPoint(lab.latLng);
-            let markerbb={ x1: pos.x-lab.anchor[0], y1: pos.y-lab.anchor[1], x2: pos.x-lab.anchor[0]+lab.size[0], y2: pos.y-lab.anchor[1]+lab.size[1] }
-            let fits=true;
+            let markerbb = { x1: pos.x-lab.anchor[0], y1: pos.y-lab.anchor[1], x2: pos.x-lab.anchor[0]+lab.size[0], y2: pos.y-lab.anchor[1]+lab.size[1] }
+            let fits = true;
             // check icon placing conflict for point features with markers
             if (lab.size[0]>0&&lab.size[1]>0) 
                 this._bbs.some(b => {
@@ -134,7 +149,9 @@ L.Labeler = L.GeoJSON.extend({
                 ls.style[r] = st[r];
             ls.style.visibility='hidden'; // initially hidden, in case it cannot be displayed
             lab.span = ls;
-            //ls.textContent = lab.label;
+            // if label text is created by a function, it may change
+            if (this.options.labelFunc)
+                lab.label=this.options.labelFunc(lab.layer);
             ls.innerHTML = lab.label;
             if (fits) {
                 for (let posi in this._posOrder) {

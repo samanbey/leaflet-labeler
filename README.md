@@ -40,3 +40,8 @@ const layer = L.labeler(geojson_data, {
 - polygons: https://samanbey.github.io/leaflet-labeler/example_poly.html (uses https://github.com/samanbey/leaflet-hatchclass for hatch fill)
 - lines: https://samanbey.github.io/leaflet-labeler/example_line.html
 
+## How to cite
+
+If you happen to use it in connectioni with a scientific publication, please refer to:
+
+Gede, M.: Automatic Labels in Leaflet, Adv. Cartogr. GIScience Int. Cartogr. Assoc., 4, 8, https://doi.org/10.5194/ica-adv-4-8-2023, 2023. 
